@@ -95,7 +95,7 @@ int ShowScreen(Display *display, size_t x, size_t y, size_t width, size_t height
 
         offscreen_canvas = matrix->SwapOnVSync(offscreen_canvas);
         XFree(img);
-        usleep(10000);
+        usleep(UPDATE_INTERVAL);
     }
 
     return 0;
