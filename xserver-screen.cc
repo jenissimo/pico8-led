@@ -64,6 +64,7 @@ int ShowScreen(Display *display, size_t x, size_t y, size_t width, size_t height
     Window window = XRootWindow(display, screen);
     XImage *img;
     ColorComponentModifier r_modifier, g_modifier, b_modifier;
+    unsigned char color_channel[3];
 
     XGetWindowAttributes(display, window, &attribs);
 
@@ -78,7 +79,6 @@ int ShowScreen(Display *display, size_t x, size_t y, size_t width, size_t height
             break;
 
         img = XGetImage(display, window, x, y, width, height, AllPlanes, XYPixmap);
-        unsigned char color_channel[3];
 
         for (int xPixel = 0; xPixel < img->width; xPixel++)
         {
