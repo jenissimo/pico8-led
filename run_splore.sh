@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 export DISPLAY=:3.0
 Xvfb $DISPLAY -screen 0 800x600x24 &
 killall pico8

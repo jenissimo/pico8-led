@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 export DISPLAY=:3.0
 export HARDWARE_DESC=adafruit-hat
 make xserver-screen

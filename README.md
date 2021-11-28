@@ -24,12 +24,12 @@ Running
 --------
 Run PICO-8 in Splore mode:
 ```
-./run_splore
+sh run_splore.sh
 ```
 --------
 Run PICO-8 game:
 ```
-./run_game your_pico_game.p8
+sh run_game.sh your_pico_game.p8
 ```
 Configure gamepad
 --------
