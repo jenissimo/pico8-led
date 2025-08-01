@@ -3,7 +3,7 @@ Displaying PICO-8 on RGB LED display with Raspberry Pi GPIO
 
 This little program runs PICO-8 in virtual X-server (Xvfb), makes screenshot every 10000 microseconds and display it on LED matrix
 
-**📍 Project inspiration and discussion:**
+**📍 Project description and discussion:**
 https://www.lexaloffle.com/bbs/?tid=45501
 
 Instructions
