@@ -5,8 +5,9 @@
 #include <unistd.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <getopt.h>
 
-#define UPDATE_INTERVAL 10000
+#define DEFAULT_UPDATE_INTERVAL 10000
 #define SCREEENSHOT_X 128
 #define SCREEENSHOT_Y 128
 #define SCREEENSHOT_WIDTH 128
@@ -55,7 +56,7 @@ ColorComponentModifier GetColorComponentModifier(unsigned long mask)
     return color_component_modifier;
 }
 
-int ShowScreen(Display *display, size_t x, size_t y, size_t width, size_t height, RGBMatrix *matrix)
+int ShowScreen(Display *display, size_t x, size_t y, size_t width, size_t height, RGBMatrix *matrix, int update_interval)
 {
     FrameCanvas *offscreen_canvas = matrix->CreateFrameCanvas();
     XColor color;
@@ -95,7 +96,7 @@ int ShowScreen(Display *display, size_t x, size_t y, size_t width, size_t height
 
         offscreen_canvas = matrix->SwapOnVSync(offscreen_canvas);
         XDestroyImage(img);
-        usleep(UPDATE_INTERVAL);
+        usleep(update_interval);
     }
 
     return 0;
@@ -103,14 +104,43 @@ int ShowScreen(Display *display, size_t x, size_t y, size_t width, size_t height
 
 int usage(const char *progname)
 {
-    fprintf(stderr, "Usage: %s [led-matrix-options]\n",
-            progname);
+    fprintf(stderr, "Usage: %s [options] [led-matrix-options]\n", progname);
+    fprintf(stderr, "Options:\n");
+    fprintf(stderr, "  -u, --update-interval <microseconds>  Update interval in microseconds (default: %d)\n", DEFAULT_UPDATE_INTERVAL);
+    fprintf(stderr, "  -h, --help                           Show this help message\n\n");
+    fprintf(stderr, "LED Matrix options:\n");
     rgb_matrix::PrintMatrixFlags(stderr);
     return 1;
 }
 
 int main(int argc, char *argv[])
 {
+    int update_interval = DEFAULT_UPDATE_INTERVAL;
+    
+    // Parse custom options
+    static struct option long_options[] = {
+        {"update-interval", required_argument, 0, 'u'},
+        {"help", no_argument, 0, 'h'},
+        {0, 0, 0, 0}
+    };
+    
+    int opt;
+    while ((opt = getopt_long(argc, argv, "u:h", long_options, NULL)) != -1) {
+        switch (opt) {
+            case 'u':
+                update_interval = atoi(optarg);
+                if (update_interval <= 0) {
+                    fprintf(stderr, "Error: Update interval must be positive\n");
+                    return 1;
+                }
+                break;
+            case 'h':
+                return usage(argv[0]);
+            default:
+                return usage(argv[0]);
+        }
+    }
+
     // Initialize the RGB matrix with
     RGBMatrix::Options matrix_options;
     rgb_matrix::RuntimeOptions runtime_opt;
@@ -137,6 +167,8 @@ int main(int argc, char *argv[])
     }
 
     fprintf(stdout, "DISPLAY is %s:\n", dpy_name);
+    fprintf(stdout, "Update interval: %d microseconds (%.1f FPS)\n", 
+            update_interval, 1000000.0 / update_interval);
 
     display = XOpenDisplay(dpy_name);
     if (display == NULL)
@@ -146,7 +178,7 @@ int main(int argc, char *argv[])
     }
 
     // Put screnshot from display on RGB Matrix
-    ShowScreen(display, SCREEENSHOT_X, SCREEENSHOT_Y, SCREEENSHOT_WIDTH, SCREEENSHOT_HEIGHT, matrix);
+    ShowScreen(display, SCREEENSHOT_X, SCREEENSHOT_Y, SCREEENSHOT_WIDTH, SCREEENSHOT_HEIGHT, matrix, update_interval);
 
     XCloseDisplay(display);
     matrix->Clear();
