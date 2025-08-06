@@ -5,7 +5,8 @@
 #include <unistd.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#include <getopt.h>
+#include <string>
+#include <vector>
 
 #define DEFAULT_UPDATE_INTERVAL 10000
 #define SCREEENSHOT_X 128
@@ -116,35 +117,47 @@ int usage(const char *progname)
 int main(int argc, char *argv[])
 {
     int update_interval = DEFAULT_UPDATE_INTERVAL;
-    
-    // Parse custom options
-    static struct option long_options[] = {
-        {"update-interval", required_argument, 0, 'u'},
-        {"help", no_argument, 0, 'h'},
-        {0, 0, 0, 0}
-    };
-    
-    int opt;
-    while ((opt = getopt_long(argc, argv, "u:h", long_options, NULL)) != -1) {
-        switch (opt) {
-            case 'u':
-                update_interval = atoi(optarg);
-                if (update_interval <= 0) {
+
+    // Manual parsing of custom options
+    std::vector<char *> new_argv;
+    new_argv.push_back(argv[0]);
+    for (int i = 1; i < argc; ++i)
+    {
+        const std::string arg = argv[i];
+        if (arg == "-u" || arg == "--update-interval")
+        {
+            if (i + 1 < argc)
+            {
+                update_interval = atoi(argv[++i]);
+                if (update_interval <= 0)
+                {
                     fprintf(stderr, "Error: Update interval must be positive\n");
                     return 1;
                 }
-                break;
-            case 'h':
+            }
+            else
+            {
+                fprintf(stderr, "Error: %s requires an argument\n", arg.c_str());
                 return usage(argv[0]);
-            default:
-                return usage(argv[0]);
+            }
+        }
+        else if (arg == "-h" || arg == "--help")
+        {
+            return usage(argv[0]);
+        }
+        else
+        {
+            new_argv.push_back(argv[i]);
         }
     }
 
-    // Initialize the RGB matrix with
+    int new_argc = new_argv.size();
+    char **new_argv_ptr = new_argv.data();
+
+    // Initialize the RGB matrix
     RGBMatrix::Options matrix_options;
     rgb_matrix::RuntimeOptions runtime_opt;
-    if (!rgb_matrix::ParseOptionsFromFlags(&argc, &argv,
+    if (!rgb_matrix::ParseOptionsFromFlags(&new_argc, &new_argv_ptr,
                                            &matrix_options, &runtime_opt))
     {
         return usage(argv[0]);
